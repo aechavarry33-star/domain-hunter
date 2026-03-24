@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DomainHunter Pro</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;--border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.14);--accent:#7c3aed;--accent2:#a78bfa;
+  --green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#f1f0f7;--muted:#6b6b8a;
+  --mono:'Space Mono',monospace;--sans:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+.header{border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;gap:1rem;background:var(--surface)}
+.logo{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(--accent2),#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.badge{font-family:var(--mono);font-size:.6rem;padding:2px 7px;border:1px solid var(--border2);border-radius:4px;color:var(--muted);-webkit-text-fill-color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.hright{margin-left:auto;display:flex;gap:.5rem;align-items:center}
+.api-dot{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.6rem;padding:2px 8px;border-radius:10px;border:1px solid var(--border)}
+.api-dot.ok{background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.3)}
+.api-dot.err{background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.3)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 2rem;overflow-x:auto}
+.tab{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;padding:.75rem 1rem;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s}
+.tab.active{color:var(--accent2);border-color:var(--accent2)}
+.tab:hover:not(.active){color:var(--text)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.nbadge{background:var(--red);color:#fff;font-size:.55rem;padding:1px 5px;border-radius:10px;margin-left:4px;font-family:var(--mono)}
+.main{max-width:1060px;margin:0 auto;padding:1.5rem 2rem}
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.card-title{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.card-title .dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);flex-shrink:0}
+.lbl{font-family:var(--mono);font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.35rem}
+input[type=text],input[type=password],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:.82rem;padding:.6rem .9rem;outline:none;transition:border-color .2s;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--surface2)}
+.btn{font-family:var(--sans);font-weight:600;font-size:.88rem;padding:.62rem 1.4rem;border:none;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover:not(:disabled){background:#6d28d9;transform:translateY(-1px)}.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.btn-s{background:transparent;border:1px solid var(--border2);color:var(--muted);font-family:var(--mono);font-size:.7rem;padding:.4rem .9rem;border-radius:6px;cursor:pointer;transition:all .15s}.btn-s:hover{color:var(--text)}
+.btn-g{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#34d399;font-family:var(--mono);font-size:.68rem;padding:3px 9px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}.btn-g:hover{background:rgba(16,185,129,.2)}
+.btn-y{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#fbbf24;font-family:var(--mono);font-size:.68rem;padding:3px 9px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}
+.btn-r{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#f87171;font-family:var(--mono);font-size:.68rem;padding:3px 9px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}
+.btn-v{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.68rem;padding:3px 9px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}.btn-v:hover{border-color:var(--accent2);color:var(--accent2)}
+.progress{height:2px;background:var(--border);border-radius:1px;overflow:hidden;margin-top:.75rem;display:none}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:.65rem;margin-bottom:1.25rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem}
+.stat-n{font-size:1.5rem;font-weight:800;line-height:1;margin-bottom:.2rem}
+.stat-l{font-family:var(--mono);font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.c-purple .stat-n{color:var(--accent2)}.c-red .stat-n{color:var(--red)}.c-amber .stat-n{color:var(--amber)}.c-green .stat-n{color:var(--green)}.c-muted .stat-n{color:var(--muted)}.c-blue .stat-n{color:#60a5fa}
+.filters{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.flbl{font-family:var(--mono);font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-right:.25rem}
+.fbtn{font-family:var(--mono);font-size:.65rem;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.fbtn:hover,.fbtn.active{border-color:var(--accent2);color:var(--accent2)}
+.fbtn.fe.active{border-color:var(--red);color:var(--red)}
+.fbtn.fs.active{border-color:var(--amber);color:var(--amber)}
+.fbtn.fo.active{border-color:var(--green);color:var(--green)}
+.urgency-panel{margin-bottom:1.25rem}
+.urgency-cards{display:flex;gap:.65rem;flex-wrap:wrap}
+.uc{border-radius:10px;padding:.75rem 1rem;min-width:160px;max-width:210px;flex:1;cursor:default}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+thead th{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:.65rem .9rem;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:.8rem .9rem;vertical-align:middle}
+.bname{font-weight:600;font-size:.86rem;margin-bottom:2px}
+.bmeta{font-family:var(--mono);font-size:.58rem;color:var(--muted)}
+.brating{font-family:var(--mono);font-size:.58rem;margin-top:2px}
+.dcell{font-family:var(--mono);font-size:.7rem;color:var(--accent2)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pe{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.ps{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+.po{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.pu{background:rgba(107,107,138,.1);color:var(--muted);border:1px solid var(--border)}
+.pc{background:rgba(124,58,237,.1);color:var(--accent2);border:1px solid rgba(124,58,237,.3)}
+.pn{background:rgba(107,107,138,.08);color:var(--muted);border:1px solid var(--border)}
+.pf{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.ds{width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block}
+.actions{display:flex;flex-direction:column;gap:3px;min-width:110px}
+.log{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;font-family:var(--mono);font-size:.68rem;color:var(--muted);max-height:130px;overflow-y:auto;line-height:1.8;display:none}
+.ll{display:block}.lok{color:var(--green)}.lwarn{color:var(--amber)}.lerr{color:var(--red)}.linfo{color:var(--accent2)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty p{font-family:var(--mono);font-size:.78rem}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.alert{border-radius:10px;padding:.85rem 1rem;font-family:var(--mono);font-size:.7rem;margin-bottom:1rem;line-height:1.6;display:none}
+.aw{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#fbbf24}
+.ae{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171}
+.setup-note{font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-top:.6rem;line-height:1.7}
+.setup-note a{color:var(--accent2);text-decoration:none}
+.pipeline{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem}
+.pcol{background:var(--surface2);border-radius:10px;padding:.75rem;min-height:200px}
+.pcol-title{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center}
+.pcard{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:.75rem;margin-bottom:.5rem;cursor:grab}
+.pcard:hover{border-color:var(--accent2)}
+.pcard-name{font-size:.8rem;font-weight:600;margin-bottom:3px}
+.pcard-domain{font-family:var(--mono);font-size:.65rem;color:var(--accent2);margin-bottom:4px}
+.pcard-meta{font-family:var(--mono);font-size:.58rem;color:var(--muted)}
+.msg-box{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:1rem;margin-top:.75rem;font-family:var(--mono);font-size:.75rem;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.search2-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+.tag{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.65rem;padding:3px 8px;border-radius:20px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);color:var(--accent2)}
+.tag button{background:none;border:none;color:var(--accent2);cursor:pointer;font-size:.75rem;padding:0;line-height:1}
+@media(max-width:700px){.stats{grid-template-columns:repeat(3,1fr)}.pipeline{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">DomainHunter</div>
+  <span class="badge">Pro</span>
+  <div class="hright">
+    <span class="api-dot" id="dotG">● Google</span>
+    <span class="api-dot" id="dotW">● WHOIS</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('search',this)">🔍 Buscar</div>
+  <div class="tab" onclick="switchTab('pipeline',this)">📋 Pipeline <span class="nbadge" id="pipBadge" style="display:none">0</span></div>
+  <div class="tab" onclick="switchTab('monitor',this)">🔔 Monitor <span class="nbadge" id="monBadge" style="display:none">0</span></div>
+  <div class="tab" onclick="switchTab('history',this)">🕓 Historial</div>
+  <div class="tab" onclick="switchTab('config',this)">⚙️ Config</div>
+</div>
+
+<!-- ══════ BUSCAR ══════ -->
+<div class="tab-panel active" id="tab-search">
+<div class="main">
+  <div class="alert aw" id="alertKeys">⚠️ Configura tus API keys en Config para datos reales. Ahora corre en modo demo con IA.</div>
+  <div class="alert ae" id="alertErr"></div>
+
+  <div class="card">
+    <!-- Búsqueda multi-giro -->
+    <div style="margin-bottom:.75rem">
+      <label class="lbl">Tipos de negocio (agrega varios)</label>
+      <div class="search2-row" id="tagRow"></div>
+      <div style="display:flex;gap:.5rem">
+        <input type="text" id="queryInput" placeholder="restaurante, spa, dentista..." style="flex:1" onkeydown="if(event.key==='Enter')addTag()"/>
+        <button class="btn-s" onclick="addTag()">+ Agregar</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px"><label class="lbl">Ciudad</label><input type="text" id="location" value="Playa del Carmen"/></div>
+      <div style="min-width:100px"><label class="lbl">Por giro</label>
+        <select id="count"><option value="20" selected>20</option><option value="40">40</option><option value="60">60</option><option value="100">100</option></select>
+      </div>
+      <div style="min-width:120px"><label class="lbl">Min. reseñas</label>
+        <select id="minReviews"><option value="0">Todas</option><option value="20">20+</option><option value="50">50+</option><option value="100">100+</option><option value="200">200+</option></select>
+      </div>
+      <button class="btn btn-p" id="searchBtn" onclick="startSearch()" style="align-self:flex-end">Buscar</button>
+    </div>
+    <div class="progress" id="progressBar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div id="filtersRow" style="display:none">
+    <div class="filters">
+      <span class="flbl">Filtrar:</span>
+      <button class="fbtn active" onclick="setFilter('all',this)">Todos</button>
+      <button class="fbtn fe" onclick="setFilter('expired',this)">Vencidos</button>
+      <button class="fbtn fs" onclick="setFilter('soon',this)">Por vencer</button>
+      <button class="fbtn fo" onclick="setFilter('opportunity',this)">⭐ Oportunidades</button>
+      <button class="fbtn" onclick="setFilter('free',this)">🟢 Dominio libre</button>
+      <button class="fbtn" onclick="setFilter('ok',this)">Vigentes</button>
+      <button class="fbtn" onclick="setFilter('unknown',this)">Sin datos</button>
+      <button class="fbtn" onclick="setFilter('nodomain',this)">Sin web</button>
+      <span class="flbl" style="margin-left:.5rem">Ordenar:</span>
+      <button class="fbtn active sbtn" onclick="setSort('urgency',this)">🔥 Urgentes</button>
+      <button class="fbtn sbtn" onclick="setSort('score',this)">⭐ Score</button>
+      <button class="fbtn sbtn" onclick="setSort('reviews',this)">💬 Reseñas</button>
+      <button class="fbtn sbtn" onclick="setSort('name',this)">A-Z</button>
+      <button class="btn-s" style="margin-left:auto" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn-s" onclick="exportPDF()">⬇ PDF</button>
+    </div>
+  </div>
+
+  <div class="stats" id="statsRow" style="display:none">
+    <div class="stat c-purple"><div class="stat-n" id="stTotal">0</div><div class="stat-l">Encontrados</div></div>
+    <div class="stat c-red"><div class="stat-n" id="stExp">0</div><div class="stat-l">Vencidos</div></div>
+    <div class="stat c-amber"><div class="stat-n" id="stSoon">0</div><div class="stat-l">&lt;60 días</div></div>
+    <div class="stat c-green"><div class="stat-n" id="stFree">0</div><div class="stat-l">Dom. libres</div></div>
+    <div class="stat c-blue"><div class="stat-n" id="stOpp">0</div><div class="stat-l">Oportunidades</div></div>
+    <div class="stat c-muted"><div class="stat-n" id="stNone">0</div><div class="stat-l">Sin web</div></div>
+  </div>
+
+  <div id="urgencyPanel" style="display:none;margin-bottom:1.25rem">
+    <div class="flbl" style="margin-bottom:.5rem">⚡ Top oportunidades</div>
+    <div class="urgency-cards" id="urgencyCards"></div>
+  </div>
+
+  <div id="resultsSection" style="display:none">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Negocio</th><th>Dominio</th><th>Score</th><th>Estado</th><th>Vencimiento</th><th>Acciones</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <p>Agrega un tipo de negocio y busca</p>
+  </div>
+
+  <div class="log" id="logBox"></div>
+</div>
+</div>
+
+<!-- ══════ PIPELINE ══════ -->
+<div class="tab-panel" id="tab-pipeline">
+<div class="main">
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-title"><span class="dot"></span> Gestión de dominios</div>
+    <p class="setup-note">Arrastra las tarjetas entre columnas para dar seguimiento a cada dominio. En la etapa "Comprado" puedes generar el mensaje de contacto con IA.</p>
+  </div>
+  <div class="pipeline" id="pipelineBoard"></div>
+</div>
+</div>
+
+<!-- ══════ MONITOR ══════ -->
+<div class="tab-panel" id="tab-monitor">
+<div class="main">
+  <div class="card">
+    <div class="card-title"><span class="dot"></span> Dominios monitoreados</div>
+    <p class="setup-note" style="margin-bottom:.75rem">Se revisan automáticamente al abrir la app. Te avisa cuando cambien de estado.</p>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <input type="text" id="monInput" placeholder="pelicanoinn.com" style="flex:1" onkeydown="if(event.key==='Enter')addMonitor()"/>
+      <button class="btn btn-p" style="align-self:auto;font-size:.8rem;padding:.55rem 1.1rem" onclick="addMonitor()">+ Agregar</button>
+    </div>
+    <div id="monList"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="dot"></span> Historial de alertas</div>
+    <div id="monAlerts" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);line-height:2">Sin alertas aún.</div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ HISTORIAL ══════ -->
+<div class="tab-panel" id="tab-history">
+<div class="main">
+  <div class="card">
+    <div class="card-title"><span class="dot"></span> Búsquedas anteriores</div>
+    <p class="setup-note" style="margin-bottom:.75rem">Los dominios ya vistos no volverán a aparecer en nuevas búsquedas. Puedes restaurarlos si quieres verlos de nuevo.</p>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <button class="btn-s" onclick="clearHistory()">Limpiar historial</button>
+      <span style="font-family:var(--mono);font-size:.68rem;color:var(--muted);align-self:center" id="histCount"></span>
+    </div>
+    <div id="histList"></div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ CONFIG ══════ -->
+<div class="tab-panel" id="tab-config">
+<div class="main">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span> Google Places API</div>
+      <label class="lbl">API Key</label>
+      <input type="password" id="googleKey" placeholder="AIzaSy..." oninput="saveKeys()"/>
+      <p class="setup-note">1. <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a><br>2. Crear proyecto → Credenciales → Crear API Key<br>3. Habilitar: Places API (New) y Geocoding API<br>$200 USD gratis/mes (~1,000 búsquedas)</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot"></span> WhoisXML API</div>
+      <label class="lbl">API Key</label>
+      <input type="password" id="whoisKey" placeholder="at_..." oninput="saveKeys()"/>
+      <p class="setup-note">1. <a href="https://register.whoisxmlapi.com/signup" target="_blank">Crear cuenta gratis</a><br>2. Confirmar email<br>3. Copiar key del dashboard<br>500 consultas gratis/mes, sin tarjeta</p>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-title"><span class="dot"></span> Modo</div>
+    <div style="display:flex;gap:1.5rem">
+      <label style="font-family:var(--mono);font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:.4rem"><input type="radio" name="mode" value="real" id="modeReal" onchange="saveKeys()"> Datos reales</label>
+      <label style="font-family:var(--mono);font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:.4rem"><input type="radio" name="mode" value="demo" id="modeDemo" checked onchange="saveKeys()"> Demo con IA</label>
+    </div>
+  </div>
+  <button class="btn btn-p" onclick="testConn()">Probar conexiones</button>
+  <span id="testRes" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-left:.75rem"></span>
+</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let results = [];
+let activeFilter = 'all';
+let activeSort = 'urgency';
+let queryTags = [];
+let seenDomains = JSON.parse(localStorage.getItem('dh_seen') || '[]');
+let pipeline = JSON.parse(localStorage.getItem('dh_pipeline') || '{"found":[],"interested":[],"bought":[],"contacted":[]}');
+let monitored = JSON.parse(localStorage.getItem('dh_monitor') || '[]');
+let monAlerts = JSON.parse(localStorage.getItem('dh_monalerts') || '[]');
+
+const CORS = 'https://api.allorigins.win/get?url=';
+const SOCIAL = ['facebook.com','instagram.com','twitter.com','x.com','tiktok.com','youtube.com','linkedin.com','tripadvisor.com','yelp.com','booking.com','airbnb.com','opentable.com','hotels.com','expedia.com','cloudbeds.com','toptablegroup.com','marriott.com','hilton.com','hyatt.com','wix.com','squarespace.com','wordpress.com'];
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  loadKeys();
+  updateDots();
+  checkKeyWarning();
+  renderPipeline();
+  renderMonitor();
+  renderHistory();
+  checkAllMonitored();
+  // default tag
+  if (!queryTags.length) addTagVal('restaurante');
+});
+
+// ══════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// KEYS & CONFIG
+// ══════════════════════════════════════════════
+function saveKeys() {
+  localStorage.setItem('dh_google', document.getElementById('googleKey').value);
+  localStorage.setItem('dh_whois', document.getElementById('whoisKey').value);
+  localStorage.setItem('dh_mode', document.querySelector('input[name=mode]:checked').value);
+  updateDots(); checkKeyWarning();
+}
+function loadKeys() {
+  document.getElementById('googleKey').value = localStorage.getItem('dh_google') || '';
+  document.getElementById('whoisKey').value = localStorage.getItem('dh_whois') || '';
+  const m = localStorage.getItem('dh_mode') || 'demo';
+  document.getElementById(m === 'real' ? 'modeReal' : 'modeDemo').checked = true;
+}
+function getMode() { return document.querySelector('input[name=mode]:checked')?.value || 'demo'; }
+function getGK() { return localStorage.getItem('dh_google') || ''; }
+function getWK() { return localStorage.getItem('dh_whois') || ''; }
+function updateDots() {
+  const mode = getMode();
+  const dg = document.getElementById('dotG'), dw = document.getElementById('dotW');
+  if (mode === 'demo') {
+    dg.className = 'api-dot'; dg.textContent = '● Google (demo)';
+    dw.className = 'api-dot'; dw.textContent = '● WHOIS (demo)';
+  } else {
+    dg.className = 'api-dot ' + (getGK() ? 'ok' : 'err'); dg.textContent = '● Google ' + (getGK() ? '✓' : '✗');
+    dw.className = 'api-dot ' + (getWK() ? 'ok' : 'err'); dw.textContent = '● WHOIS ' + (getWK() ? '✓' : '✗');
+  }
+}
+function checkKeyWarning() {
+  document.getElementById('alertKeys').style.display = getMode() === 'demo' ? 'block' : 'none';
+}
+async function testConn() {
+  const el = document.getElementById('testRes');
+  el.textContent = 'Probando...'; el.style.color = 'var(--muted)';
+  try {
+    const gRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': getGK(), 'X-Goog-FieldMask': 'places.id' },
+      body: JSON.stringify({ textQuery: 'test', maxResultCount: 1 })
+    });
+    const gd = await gRes.json();
+    const gOk = !gd.error;
+    const wUrl = `https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=${getWK()}&domainName=google.com&outputFormat=JSON`;
+    const wd = await proxyFetch(wUrl);
+    const wOk = !wd.ErrorMessage && !!wd.WhoisRecord;
+    el.textContent = `Google: ${gOk ? '✓ OK' : '✗ Error'} | WHOIS: ${wOk ? '✓ OK' : '✗ Error'}`;
+    el.style.color = (gOk && wOk) ? 'var(--green)' : 'var(--amber)';
+  } catch(e) { el.textContent = 'Error: ' + e.message; el.style.color = 'var(--red)'; }
+}
+
+// ══════════════════════════════════════════════
+// MULTI-TAG SEARCH
+// ══════════════════════════════════════════════
+function addTag() {
+  const v = document.getElementById('queryInput').value.trim();
+  if (!v) return;
+  v.split(',').map(s => s.trim()).filter(Boolean).forEach(addTagVal);
+  document.getElementById('queryInput').value = '';
+}
+function addTagVal(v) {
+  if (!v || queryTags.includes(v)) return;
+  queryTags.push(v);
+  renderTags();
+}
+function removeTag(v) { queryTags = queryTags.filter(t => t !== v); renderTags(); }
+function renderTags() {
+  document.getElementById('tagRow').innerHTML = queryTags.map(t =>
+    `<span class="tag">${t}<button onclick="removeTag('${t}')">×</button></span>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function isSocial(d) { return d && SOCIAL.some(s => d === s || d.endsWith('.' + s)); }
+function guessDomain(name) {
+  return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,'').trim().split(/\s+/).slice(0,4).join('') + '.com';
+}
+function extractDomain(url) {
+  if (!url) return null;
+  try { return new URL(url.startsWith('http') ? url : 'https://' + url).hostname.replace(/^www\./,''); }
+  catch { return url.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0]; }
+}
+async function proxyFetch(url) {
+  const r = await fetch(CORS + encodeURIComponent(url));
+  const w = await r.json();
+  return JSON.parse(w.contents);
+}
+function setProgress(p) {
+  document.getElementById('progressBar').style.display = 'block';
+  document.getElementById('progressFill').style.width = p + '%';
+  if (p >= 100) setTimeout(() => { document.getElementById('progressBar').style.display = 'none'; }, 800);
+}
+function log(msg, type='info') {
+  const b = document.getElementById('logBox');
+  b.style.display = 'block';
+  const s = document.createElement('span');
+  s.className = 'll l' + type;
+  s.textContent = `[${new Date().toLocaleTimeString('es',{hour12:false})}] ${msg}`;
+  b.appendChild(s); b.scrollTop = b.scrollHeight;
+}
+function showErr(msg) {
+  const el = document.getElementById('alertErr');
+  el.textContent = '❌ ' + msg; el.style.display = 'block';
+}
+
+// ══════════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════════
+async function startSearch() {
+  if (!queryTags.length) { alert('Agrega al menos un tipo de negocio'); return; }
+  const location = document.getElementById('location').value.trim();
+  const count = parseInt(document.getElementById('count').value);
+  const minReviews = parseInt(document.getElementById('minReviews').value);
+  if (!location) return;
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin">⟳</span> Buscando...';
+  document.getElementById('logBox').innerHTML = '';
+  document.getElementById('alertErr').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('filtersRow').style.display = 'none';
+  results = [];
+
+  try {
+    const mode = getMode();
+    log(`Buscando ${queryTags.join(', ')} en ${location} | modo: ${mode}`, 'info');
+    setProgress(5);
+
+    let businesses = [];
+    for (let i = 0; i < queryTags.length; i++) {
+      const tag = queryTags[i];
+      log(`Buscando: ${tag}...`, 'info');
+      let batch = mode === 'real' && getGK()
+        ? await fetchGoogle(tag, location, count)
+        : await fetchDemo(tag, location, count);
+
+      // Filtrar ya vistos y por min reseñas
+      batch = batch.filter(b => {
+        const d = b.domain || guessDomain(b.name);
+        return !seenDomains.includes(d) && (b.reviewCount || 0) >= minReviews;
+      });
+      businesses.push(...batch);
+      setProgress(5 + Math.round(((i+1)/queryTags.length) * 20));
+    }
+
+    // Deduplicar por nombre
+    const seen = new Set();
+    businesses = businesses.filter(b => { if (seen.has(b.name)) return false; seen.add(b.name); return true; });
+
+    log(`${businesses.length} negocios únicos encontrados`, 'ok');
+    document.getElementById('stTotal').textContent = businesses.length;
+    document.getElementById('statsRow').style.display = 'grid';
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('filtersRow').style.display = 'block';
+
+    results = businesses.map(b => ({ ...b, status: 'checking', score: null, scoreReason: null }));
+    renderTable();
+
+    for (let i = 0; i < results.length; i++) {
+      const biz = results[i];
+
+      // Detectar redes sociales
+      if (biz.domain && isSocial(biz.domain)) {
+        const gd = guessDomain(biz.name);
+        const free = await checkFree(gd);
+        results[i] = { ...biz, domain: null, originalDomain: biz.domain, isSocial: true, status: 'nodomain', guessedDomain: gd, domainFree: free };
+        log(`${biz.name}: usa ${biz.domain} → dominio ${gd} ${free ? '🟢 LIBRE' : free === false ? 'tomado' : '?'}`, free ? 'ok' : 'warn');
+      } else if (biz.domain) {
+        const info = mode === 'real' && getWK() ? await whoisReal(biz.domain) : await whoisDemo(biz.domain);
+        results[i] = { ...biz, ...info };
+        if (info.status === 'expired') log(`${biz.name}: VENCIDO ${info.expiry}`, 'err');
+        else if (info.status === 'soon') log(`${biz.name}: vence en ${info.daysLeft}d`, 'warn');
+        else if (info.status === 'ok') log(`${biz.name}: vigente`, 'ok');
+      } else {
+        const gd = guessDomain(biz.name);
+        const free = await checkFree(gd);
+        results[i] = { ...biz, status: 'nodomain', guessedDomain: gd, domainFree: free };
+        log(`${biz.name}: sin web → ${gd} ${free ? '🟢 LIBRE' : free === false ? 'tomado' : '?'}`, free ? 'ok' : 'warn');
+      }
+
+      // Score IA
+      const sc = await scoreAI(results[i]);
+      results[i].score = sc.score; results[i].scoreReason = sc.reason;
+      if (sc.score >= 7 && (
+        ['expired','soon'].includes(results[i].status) ||
+        results[i].domainFree === true
+      )) results[i].isOpportunity = true;
+
+      // Marcar como visto
+      const dKey = results[i].domain || results[i].guessedDomain;
+      if (dKey && !seenDomains.includes(dKey)) { seenDomains.push(dKey); localStorage.setItem('dh_seen', JSON.stringify(seenDomains)); }
+
+      setProgress(25 + Math.round(((i+1)/results.length)*70));
+      renderTable(); updateStats();
+    }
+
+    setProgress(100);
+    log('✓ Análisis completado', 'ok');
+    renderHistory();
+
+  } catch(err) {
+    showErr(err.message); log('Error: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'Buscar';
+  }
+}
+
+// ══════════════════════════════════════════════
+// GOOGLE PLACES
+// ══════════════════════════════════════════════
+async function fetchGoogle(query, location, count) {
+  const key = getGK();
+  const all = [];
+  let token = null;
+  const pages = Math.ceil(count / 20);
+
+  for (let p = 0; p < pages && all.length < count; p++) {
+    const body = { textQuery: `${query} en ${location}`, maxResultCount: Math.min(20, count - all.length), languageCode: 'es' };
+    if (token) body.pageToken = token;
+
+    const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': key,
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.primaryTypeDisplayName,places.types,places.rating,places.userRatingCount,places.businessStatus,nextPageToken'
+      },
+      body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    if (d.error) throw new Error('Google API: ' + (d.error.message || 'Error'));
+    if (!d.places?.length) break;
+    all.push(...d.places);
+    token = d.nextPageToken || null;
+    if (!token) break;
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  return all.map(p => ({
+    name: p.displayName?.text || 'Sin nombre',
+    category: p.primaryTypeDisplayName?.text || '',
+    address: p.formattedAddress || '',
+    phone: p.nationalPhoneNumber || '',
+    website: p.websiteUri || null,
+    domain: p.websiteUri ? extractDomain(p.websiteUri) : null,
+    placeId: p.id,
+    rating: p.rating || null,
+    reviewCount: p.userRatingCount || 0,
+    businessStatus: p.businessStatus || 'OPERATIONAL',
+  }));
+}
+
+async function fetchDemo(query, location, count) {
+  const prompt = `Genera ${count} negocios ficticios realistas de tipo "${query}" en "${location}", México.
+JSON array, campos: name, category, address, phone, domain (sin https/www, o null), rating (1-5), reviewCount (número).
+SOLO JSON, sin texto.`;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+  });
+  const d = await res.json();
+  const arr = JSON.parse(d.content.map(c => c.text||'').join('').replace(/```json|```/g,'').trim());
+  return arr.map(b => ({ ...b, domain: b.domain ? extractDomain(b.domain) : null, reviewCount: b.reviewCount || 0 }));
+}
+
+// ══════════════════════════════════════════════
+// WHOIS
+// ══════════════════════════════════════════════
+async function whoisReal(domain) {
+  // 1. WhoisXML
+  try {
+    const d = await proxyFetch(`https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=${getWK()}&domainName=${domain}&outputFormat=JSON`);
+    if (!d.ErrorMessage) {
+      const wr = d.WhoisRecord || {};
+      const expiry = wr.expiresDate || wr.registryData?.expiresDate;
+      if (expiry) return calcExpiry(expiry, wr.registrarName || wr.registryData?.registrarName);
+    }
+  } catch(e) {}
+  // 2. RDAP.org
+  try {
+    const r = await fetch(`https://rdap.org/domain/${domain}`, { headers: { Accept: 'application/json' } });
+    if (r.ok) {
+      const d = await r.json();
+      const ev = (d.events||[]).find(e => e.eventAction==='expiration');
+      if (ev?.eventDate) return calcExpiry(ev.eventDate, d.entities?.find(e=>e.roles?.includes('registrar'))?.vcardArray?.[1]?.find(f=>f[0]==='fn')?.[3]);
+    }
+  } catch(e) {}
+  // 3. Verisign (.com/.net)
+  try {
+    const tld = domain.split('.').pop();
+    if (['com','net'].includes(tld)) {
+      const r = await fetch(`https://rdap.verisign.com/${tld}/v1/domain/${domain}`, { headers: { Accept: 'application/json' } });
+      if (r.ok) {
+        const d = await r.json();
+        const ev = (d.events||[]).find(e => e.eventAction==='expiration');
+        if (ev?.eventDate) return calcExpiry(ev.eventDate, d.entities?.find(e=>e.roles?.includes('registrar'))?.vcardArray?.[1]?.find(f=>f[0]==='fn')?.[3]);
+      }
+    }
+  } catch(e) {}
+  return { status: 'unknown', expiry: null, daysLeft: null, registrar: null };
+}
+
+function calcExpiry(expiry, registrar) {
+  const exp = new Date(expiry), today = new Date();
+  const daysLeft = Math.floor((exp - today) / 86400000);
+  return { status: daysLeft < 0 ? 'expired' : daysLeft < 60 ? 'soon' : 'ok', expiry: exp.toISOString().split('T')[0], daysLeft, registrar: registrar || null };
+}
+
+async function whoisDemo(domain) {
+  const today = new Date().toISOString().split('T')[0];
+  const prompt = `Simula WHOIS para "${domain}". Hoy: ${today}. Distribución: 25% vencido, 20% vence <60d, 55% vigente. JSON: {"expiry":"YYYY-MM-DD","registrar":"nombre"}. SOLO JSON.`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 100, messages: [{ role: 'user', content: prompt }] })
+    });
+    const d = await res.json();
+    const info = JSON.parse(d.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+    return calcExpiry(info.expiry, info.registrar);
+  } catch { return { status: 'unknown', expiry: null, daysLeft: null, registrar: null }; }
+}
+
+async function checkFree(domain) {
+  try {
+    const r = await fetch(`https://rdap.org/domain/${domain}`, { headers: { Accept: 'application/json' } });
+    if (r.status === 404) return true;
+    if (r.ok) return false;
+  } catch(e) {}
+  return null;
+}
+
+// ══════════════════════════════════════════════
+// AI SCORE
+// ══════════════════════════════════════════════
+async function scoreAI(biz) {
+  try {
+    const domInfo = biz.domain
+      ? `Dominio: ${biz.domain}, estado: ${biz.status}${biz.daysLeft!=null?' ('+biz.daysLeft+'d)':''}`
+      : biz.isSocial
+      ? `Usa ${biz.originalDomain} (red social). Dominio propio "${biz.guessedDomain}" está ${biz.domainFree===true?'LIBRE':biz.domainFree===false?'tomado':'sin verificar'}`
+      : `Sin web. Dominio "${biz.guessedDomain}" está ${biz.domainFree===true?'LIBRE':biz.domainFree===false?'tomado':'sin verificar'}`;
+    const prompt = `Experto en dominios México. Negocio: "${biz.name}" (${biz.category}). Rating: ${biz.rating||'?'}/5, ${biz.reviewCount||0} reseñas. ${domInfo}.
+Score 1-10 de oportunidad de comprar el dominio. Alto si: negocio activo, nombre único, dominio libre o por vencer, muchas reseñas. Bajo si: franquicia global, negocio informal, nombre genérico.
+JSON: {"score":N,"reason":"frase corta"}. SOLO JSON.`;
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 100, messages: [{ role: 'user', content: prompt }] })
+    });
+    const d = await res.json();
+    const p = JSON.parse(d.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+    return { score: Math.min(10, Math.max(1, Math.round(p.score))), reason: p.reason };
+  } catch { return { score: 0, reason: null }; }
+}
+
+// ══════════════════════════════════════════════
+// PRICE ESTIMATOR
+// ══════════════════════════════════════════════
+async function estimatePrice(biz) {
+  const prompt = `Experto en venta de dominios a negocios locales en México.
+Negocio: "${biz.name}" (${biz.category}), ${biz.rating||'?'}/5 estrellas, ${biz.reviewCount||0} reseñas.
+¿Cuánto pagarían por su dominio? Considera: tamaño del negocio, reseñas, tipo.
+JSON: {"min":N,"max":N,"currency":"USD","pitch":"frase de una línea del valor que les das"}. SOLO JSON.`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+    });
+    const d = await res.json();
+    return JSON.parse(d.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+  } catch { return null; }
+}
+
+// ══════════════════════════════════════════════
+// CONTACT MESSAGE GENERATOR
+// ══════════════════════════════════════════════
+async function genMessage(biz, domain, channel) {
+  const tones = { restaurante:'casual y amigable', hotel:'profesional pero cercano', clinica:'muy profesional y formal', spa:'cálido y sofisticado', abogado:'formal y directo', default:'profesional pero accesible' };
+  const cat = (biz.category||'').toLowerCase();
+  const tone = Object.keys(tones).find(k => cat.includes(k)) ? tones[Object.keys(tones).find(k => cat.includes(k))] : tones.default;
+
+  const price = await estimatePrice(biz);
+  const priceHint = price ? `Precio sugerido: $${price.min}-${price.max} USD. Pitch: "${price.pitch}"` : '';
+
+  const prompt = `Eres un emprendedor digital mexicano que compró el dominio "${domain}" y quiere vendérselo al negocio.
+Negocio: "${biz.name}" (${biz.category}), ${biz.rating||'?'}/5 estrellas.
+Canal: ${channel === 'whatsapp' ? 'WhatsApp (informal, breve, máx 150 palabras)' : 'Email (más formal, 200-250 palabras)'}
+Tono: ${tone}
+${priceHint}
+
+Escribe el mensaje completo listo para enviar. Menciona que compraste su dominio "${domain}", explica el valor, propón el precio naturalmente. NO uses plantillas genéricas, sé específico al negocio.
+Solo el mensaje, sin explicaciones.`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
+  });
+  const d = await res.json();
+  return d.content.map(c=>c.text||'').join('').trim();
+}
+
+// ══════════════════════════════════════════════
+// RENDER TABLE
+// ══════════════════════════════════════════════
+function getSorted(data) {
+  const order = { expired:0, soon:1, ok:2, unknown:3, nodomain:4, checking:5 };
+  if (activeSort === 'urgency') return [...data].sort((a,b) => { const d=(order[a.status]??9)-(order[b.status]??9); if(d!==0)return d; return (a.daysLeft??9999)-(b.daysLeft??9999); });
+  if (activeSort === 'score') return [...data].sort((a,b) => (b.score||0)-(a.score||0));
+  if (activeSort === 'reviews') return [...data].sort((a,b) => (b.reviewCount||0)-(a.reviewCount||0));
+  return [...data].sort((a,b) => a.name.localeCompare(b.name));
+}
+
+function filterData() {
+  if (activeFilter === 'all') return results;
+  if (activeFilter === 'opportunity') return results.filter(r => r.isOpportunity);
+  if (activeFilter === 'free') return results.filter(r => r.domainFree === true);
+  return results.filter(r => r.status === activeFilter);
+}
+
+function setFilter(f, btn) { activeFilter = f; document.querySelectorAll('.fbtn:not(.sbtn)').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTable(); }
+function setSort(s, btn) { activeSort = s; document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTable(); }
+
+function renderTable() {
+  renderUrgency();
+  const tbody = document.getElementById('tbody');
+  const data = getSorted(filterData());
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:.75rem;padding:2rem">Sin resultados</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  data.forEach((r, i) => {
+    const tr = document.createElement('tr');
+
+    // Status pill
+    const sp = r.status === 'checking' ? `<span class="pill pc"><span class="spin">⟳</span> verificando</span>`
+      : r.status === 'expired' ? `<span class="pill pe"><span class="ds"></span> VENCIDO</span>`
+      : r.status === 'soon' ? `<span class="pill ps"><span class="ds"></span> Por vencer</span>`
+      : r.status === 'ok' ? `<span class="pill po"><span class="ds"></span> Vigente</span>`
+      : r.status === 'nodomain' && r.domainFree === true ? `<span class="pill pf"><span class="ds"></span> Dom. libre</span>`
+      : r.status === 'nodomain' ? `<span class="pill pn">Sin dominio</span>`
+      : `<span class="pill pu">Sin datos</span>`;
+
+    // Domain cell
+    const dc = r.domain ? `<span class="dcell">${r.domain}</span>`
+      : r.isSocial ? `<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">usa ${r.originalDomain}</div>${r.guessedDomain?`<div style="font-family:var(--mono);font-size:.62rem;color:${r.domainFree===true?'var(--green)':'var(--muted)'}">${r.domainFree===true?'🟢':''} ~${r.guessedDomain}</div>`:''}`
+      : r.guessedDomain ? `<span style="font-family:var(--mono);font-size:.65rem;color:${r.domainFree===true?'var(--green)':'var(--muted)'}">~${r.guessedDomain}${r.domainFree===true?' 🟢':''}</span>`
+      : `<span style="color:var(--muted)">—</span>`;
+
+    // Expiry cell
+    let ec = `<span style="color:var(--muted);font-family:var(--mono);font-size:.7rem">—</span>`;
+    if (r.expiry) {
+      const dc2 = r.daysLeft < 0 ? 'var(--red)' : r.daysLeft < 60 ? 'var(--amber)' : 'var(--green)';
+      const dl = r.daysLeft < 0 ? `hace ${Math.abs(r.daysLeft)}d` : `en ${r.daysLeft}d`;
+      ec = `<div style="font-family:var(--mono);font-size:.7rem">${r.expiry}</div><div style="font-family:var(--mono);font-size:.62rem;color:${dc2};margin-top:2px">${dl}${r.registrar?' · '+r.registrar:''}</div>`;
+    }
+
+    // Score cell
+    const sc = r.score == null ? `<span style="color:var(--muted);font-family:var(--mono);font-size:.65rem">—</span>` : (() => {
+      const c = r.score >= 8 ? 'var(--green)' : r.score >= 6 ? 'var(--amber)' : 'var(--muted)';
+      return `<div title="${r.scoreReason||''}" style="cursor:help"><span style="font-family:var(--mono);font-size:.8rem;font-weight:700;color:${c}">${r.score}</span><span style="font-family:var(--mono);font-size:.55rem;color:${c};display:block">/10</span></div>`;
+    })();
+
+    // Actions
+    const dom = r.domain || r.guessedDomain;
+    let actions = '';
+    const daysExp = r.daysLeft != null ? Math.abs(r.daysLeft) : 999;
+
+    if (r.status === 'expired' && r.domain) {
+      if (daysExp < 30) actions = `<a class="btn-y" href="https://www.godaddy.com/domain-value-appraisal/appraisal/?domainToCheck=${r.domain}" target="_blank">⏳ Backorder</a><a class="btn-y" href="https://www.dropcatch.com/domain/${r.domain}" target="_blank">⏳ DropCatch</a>`;
+      else if (daysExp < 60) actions = `<span style="font-family:var(--mono);font-size:.58rem;color:var(--amber)">Redención ~${60-daysExp}d</span><a class="btn-y" href="https://www.dropcatch.com/domain/${r.domain}" target="_blank">⏳ Backorder</a>`;
+      else actions = `<a class="btn-r" href="https://www.godaddy.com/domainsearch/find?domainToCheck=${r.domain}" target="_blank">🔴 Registrar</a><a class="btn-r" href="https://www.namecheap.com/domains/registration/results/?domain=${r.domain}" target="_blank">Namecheap</a>`;
+    } else if (r.status === 'soon' && r.domain) {
+      actions = `<a class="btn-y" href="https://www.godaddy.com/domain-value-appraisal/appraisal/?domainToCheck=${r.domain}" target="_blank">⏳ Backorder</a><a class="btn-y" href="https://www.dropcatch.com/domain/${r.domain}" target="_blank">⏳ DropCatch</a>`;
+    } else if (r.domainFree === true && dom) {
+      actions = `<a class="btn-g" href="https://www.godaddy.com/domainsearch/find?domainToCheck=${dom}" target="_blank">🟢 Comprar ya</a><a class="btn-g" href="https://www.namecheap.com/domains/registration/results/?domain=${dom}" target="_blank">Namecheap</a>`;
+    } else if (r.status === 'unknown' && r.domain) {
+      const wu = r.domain.endsWith('.mx')||r.domain.endsWith('.com.mx') ? `https://www.whois.mx/?q=${r.domain}` : `https://who.is/whois/${r.domain}`;
+      actions = `<a class="btn-v" href="${wu}" target="_blank">Verificar WHOIS</a>`;
+    } else if (r.domain) {
+      actions = `<a class="btn-v" href="https://${r.domain}" target="_blank">Visitar</a>`;
+    }
+
+    // Pipeline add button
+    const pipBtn = `<button class="btn-v" style="margin-top:3px" onclick="addToPipeline(${i})">+ Pipeline</button>`;
+
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-family:var(--mono);font-size:.68rem">${i+1}</td>
+      <td>
+        <div class="bname">${r.name}${r.isOpportunity?` <span style="font-size:.55rem;background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3);padding:1px 5px;border-radius:8px;font-family:var(--mono)">⭐ top</span>`:''}${r.isSocial?` <span style="font-size:.55rem;background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.3);padding:1px 5px;border-radius:8px;font-family:var(--mono)">solo social</span>`:''}</div>
+        <div class="bmeta">${r.category||''}${r.phone?' · '+r.phone:''}</div>
+        ${r.rating ? `<div class="brating"><span style="color:var(--amber)">⭐${r.rating}</span> <span style="color:var(--muted)">(${r.reviewCount} reseñas)</span></div>` : ''}
+      </td>
+      <td>${dc}</td>
+      <td>${sc}</td>
+      <td>${sp}</td>
+      <td>${ec}</td>
+      <td><div class="actions">${actions}${pipBtn}</div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateStats() {
+  document.getElementById('stExp').textContent = results.filter(r=>r.status==='expired').length;
+  document.getElementById('stSoon').textContent = results.filter(r=>r.status==='soon').length;
+  document.getElementById('stFree').textContent = results.filter(r=>r.domainFree===true).length;
+  document.getElementById('stOpp').textContent = results.filter(r=>r.isOpportunity).length;
+  document.getElementById('stNone').textContent = results.filter(r=>r.status==='nodomain').length;
+}
+
+function renderUrgency() {
+  const panel = document.getElementById('urgencyPanel');
+  const container = document.getElementById('urgencyCards');
+
+  const top = getSorted(results.filter(r =>
+    (r.expiry && r.daysLeft != null) || r.domainFree === true
+  )).slice(0, 6);
+
+  if (!top.length) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  container.innerHTML = '';
+
+  top.forEach(r => {
+    let color, bg, border, label, sub;
+    if (r.domainFree === true && r.status === 'nodomain') {
+      color='var(--green)'; bg='rgba(16,185,129,.08)'; border='rgba(16,185,129,.3)';
+      label='🟢 Dominio libre'; sub=r.guessedDomain||'';
+    } else {
+      const exp=r.daysLeft<0, soon=r.daysLeft>=0&&r.daysLeft<60;
+      color=exp?'var(--red)':soon?'var(--amber)':'var(--green)';
+      bg=exp?'rgba(239,68,68,.08)':soon?'rgba(245,158,11,.08)':'rgba(16,185,129,.06)';
+      border=exp?'rgba(239,68,68,.3)':soon?'rgba(245,158,11,.3)':'rgba(16,185,129,.2)';
+      label=exp?`Vencido hace ${Math.abs(r.daysLeft)}d`:`Vence en ${r.daysLeft}d`;
+      sub=r.expiry||'';
+    }
+    const card = document.createElement('div');
+    card.className='uc'; card.style.cssText=`background:${bg};border:1px solid ${border}`;
+    card.innerHTML=`<div style="font-size:.72rem;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</div>${r.rating?`<div style="font-family:var(--mono);font-size:.58rem;color:var(--amber);margin-bottom:3px">⭐${r.rating} (${r.reviewCount})</div>`:''}<div style="font-family:var(--mono);font-size:.62rem;color:var(--accent2);margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.domain||r.guessedDomain||'—'}</div><div style="font-family:var(--mono);font-size:.68rem;font-weight:700;color:${color}">${label}</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:2px">${sub}</div>`;
+    container.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════
+// PIPELINE
+// ══════════════════════════════════════════════
+const STAGES = [
+  { key:'found', label:'Encontrado', color:'var(--muted)' },
+  { key:'interested', label:'Me interesa', color:'var(--accent2)' },
+  { key:'bought', label:'Comprado', color:'var(--amber)' },
+  { key:'contacted', label:'Contactado', color:'var(--green)' },
+];
+
+function savePipeline() { localStorage.setItem('dh_pipeline', JSON.stringify(pipeline)); }
+
+function addToPipeline(idx) {
+  const r = results[idx];
+  if (!r) return;
+  const item = { id: Date.now(), name: r.name, domain: r.domain || r.guessedDomain, category: r.category, rating: r.rating, reviewCount: r.reviewCount, score: r.score, phone: r.phone, isSocial: r.isSocial, originalDomain: r.originalDomain };
+  if (pipeline.found.find(x => x.name === item.name)) { alert('Ya está en el pipeline'); return; }
+  pipeline.found.push(item);
+  savePipeline();
+  renderPipeline();
+  updatePipBadge();
+  alert(`"${item.name}" agregado al pipeline ✓`);
+}
+
+function moveStage(id, from, to) {
+  const item = pipeline[from].find(x => x.id === id);
+  if (!item) return;
+  pipeline[from] = pipeline[from].filter(x => x.id !== id);
+  pipeline[to].push(item);
+  savePipeline(); renderPipeline(); updatePipBadge();
+}
+
+function removeFromPipeline(id, stage) {
+  pipeline[stage] = pipeline[stage].filter(x => x.id !== id);
+  savePipeline(); renderPipeline(); updatePipBadge();
+}
+
+function updatePipBadge() {
+  const total = Object.values(pipeline).flat().length;
+  const b = document.getElementById('pipBadge');
+  b.style.display = total > 0 ? 'inline' : 'none';
+  b.textContent = total;
+}
+
+function renderPipeline() {
+  const board = document.getElementById('pipelineBoard');
+  board.innerHTML = '';
+  STAGES.forEach(stage => {
+    const items = pipeline[stage.key] || [];
+    const col = document.createElement('div');
+    col.className = 'pcol';
+    col.innerHTML = `<div class="pcol-title"><span style="color:${stage.color}">${stage.label}</span><span style="color:var(--muted)">${items.length}</span></div>`;
+
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'pcard';
+
+      const prevStage = STAGES[STAGES.findIndex(s=>s.key===stage.key)-1];
+      const nextStage = STAGES[STAGES.findIndex(s=>s.key===stage.key)+1];
+
+      let extra = '';
+      if (stage.key === 'bought') {
+        extra = `
+          <div style="margin-top:.5rem;display:flex;flex-direction:column;gap:3px">
+            <button class="btn-g" style="font-size:.6rem;padding:2px 6px" onclick="showMsgModal(${item.id},'whatsapp')">📱 Generar WhatsApp</button>
+            <button class="btn-v" style="font-size:.6rem;padding:2px 6px" onclick="showMsgModal(${item.id},'email')">📧 Generar Email</button>
+          </div>`;
+      }
+
+      card.innerHTML = `
+        <div class="pcard-name">${item.name}${item.score?` <span style="font-family:var(--mono);font-size:.6rem;color:var(--amber)">${item.score}/10</span>`:''}</div>
+        <div class="pcard-domain">${item.domain||'—'}</div>
+        <div class="pcard-meta">${item.category||''}${item.rating?' · ⭐'+item.rating+' ('+item.reviewCount+')':''}</div>
+        ${extra}
+        <div style="display:flex;gap:4px;margin-top:.5rem;flex-wrap:wrap">
+          ${prevStage?`<button class="btn-v" style="font-size:.58rem;padding:2px 5px" onclick="moveStage(${item.id},'${stage.key}','${prevStage.key}')">← ${prevStage.label}</button>`:''}
+          ${nextStage?`<button class="btn-g" style="font-size:.58rem;padding:2px 5px" onclick="moveStage(${item.id},'${stage.key}','${nextStage.key}')">${nextStage.label} →</button>`:''}
+          <button class="btn-r" style="font-size:.58rem;padding:2px 5px;margin-left:auto" onclick="removeFromPipeline(${item.id},'${stage.key}')">✕</button>
+        </div>`;
+      col.appendChild(card);
+    });
+
+    board.appendChild(col);
+  });
+  updatePipBadge();
+}
+
+async function showMsgModal(id, channel) {
+  const item = Object.values(pipeline).flat().find(x => x.id === id);
+  if (!item || !item.domain) { alert('Este ítem no tiene un dominio asignado todavía'); return; }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  modal.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:1.5rem;max-width:560px;width:100%;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <span style="font-weight:700">${channel==='whatsapp'?'📱 Mensaje WhatsApp':'📧 Email'} para ${item.name}</span>
+      <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer">×</button>
+    </div>
+    <div id="msgContent" style="color:var(--muted);font-family:var(--mono);font-size:.75rem">⟳ Generando mensaje con IA...</div>
+    <div style="margin-top:1rem;display:flex;gap:.5rem">
+      <button class="btn-g" onclick="copyMsg()" style="font-size:.75rem">Copiar mensaje</button>
+      <button class="btn-v" onclick="regenMsg(${id},'${channel}')" style="font-size:.75rem">↻ Regenerar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+
+  const msg = await genMessage(item, item.domain, channel);
+  document.getElementById('msgContent').innerHTML = `<div class="msg-box">${msg}</div>`;
+  document.getElementById('msgContent').dataset.msg = msg;
+}
+
+function copyMsg() {
+  const el = document.getElementById('msgContent');
+  const msg = el.dataset.msg || el.textContent;
+  navigator.clipboard.writeText(msg).then(() => alert('Mensaje copiado ✓'));
+}
+
+// ══════════════════════════════════════════════
+// MONITOR
+// ══════════════════════════════════════════════
+function saveMonitor() { localStorage.setItem('dh_monitor', JSON.stringify(monitored)); localStorage.setItem('dh_monalerts', JSON.stringify(monAlerts)); }
+
+function addMonitor() {
+  const v = document.getElementById('monInput').value.trim().replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].toLowerCase();
+  if (!v || monitored.find(m=>m.domain===v)) { document.getElementById('monInput').value=''; return; }
+  monitored.push({ domain:v, addedAt:new Date().toISOString(), lastStatus:null, lastCheck:null, expiry:null });
+  saveMonitor(); document.getElementById('monInput').value='';
+  renderMonitor(); checkMonDomain(monitored.length-1);
+}
+
+function removeMonitor(d) { monitored = monitored.filter(m=>m.domain!==d); saveMonitor(); renderMonitor(); }
+
+async function checkMonDomain(idx) {
+  const m = monitored[idx]; if (!m) return;
+  const info = getMode()==='real'&&getWK() ? await whoisReal(m.domain) : await whoisDemo(m.domain);
+  const prev = m.lastStatus;
+  monitored[idx] = { ...m, lastStatus:info.status, lastCheck:new Date().toISOString(), expiry:info.expiry, daysLeft:info.daysLeft };
+  if (prev && prev !== info.status) {
+    const msgs = { expired:`VENCIDO — disponible pronto`, soon:`Vence en ${info.daysLeft} días`, ok:`Renovado — ahora vigente` };
+    monAlerts.push({ domain:m.domain, type:info.status, msg:msgs[info.status]||'Cambió de estado', date:new Date().toISOString() });
+    if (Notification.permission==='granted') new Notification(`DomainHunter: ${m.domain}`, { body:msgs[info.status]||'' });
+  }
+  saveMonitor(); renderMonitor();
+}
+
+async function checkAllMonitored() {
+  if (!monitored.length) return;
+  if (Notification.permission==='default') await Notification.requestPermission();
+  for (let i=0; i<monitored.length; i++) { await checkMonDomain(i); await new Promise(r=>setTimeout(r,400)); }
+}
+
+function renderMonitor() {
+  const list = document.getElementById('monList');
+  const alerts = document.getElementById('monAlerts');
+  const badge = document.getElementById('monBadge');
+
+  const urgent = monitored.filter(m=>m.lastStatus==='expired'||m.lastStatus==='soon').length;
+  badge.style.display = urgent > 0 ? 'inline' : 'none'; badge.textContent = urgent;
+
+  list.innerHTML = monitored.length ? monitored.map((m,i) => {
+    const c = m.lastStatus==='expired'?'var(--red)':m.lastStatus==='soon'?'var(--amber)':m.lastStatus==='ok'?'var(--green)':'var(--muted)';
+    const lbl = m.lastStatus==='expired'?'🔴 VENCIDO':m.lastStatus==='soon'?'🟡 Por vencer':m.lastStatus==='ok'?'🟢 Vigente':'⏳ Pendiente';
+    const lc = m.lastCheck ? new Date(m.lastCheck).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'}) : '—';
+    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border)">
+      <span style="font-family:var(--mono);font-size:.75rem;color:var(--accent2);flex:1">${m.domain}</span>
+      <span style="font-family:var(--mono);font-size:.62rem;color:${c}">${lbl}</span>
+      ${m.expiry?`<span style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">${m.expiry}</span>`:''}
+      <span style="font-family:var(--mono);font-size:.58rem;color:var(--muted)">${lc}</span>
+      <button onclick="checkMonDomain(${i})" class="btn-v" style="font-size:.6rem;padding:2px 6px">↻</button>
+      <button onclick="removeMonitor('${m.domain}')" class="btn-r" style="font-size:.6rem;padding:2px 6px">✕</button>
+    </div>`;
+  }).join('') : '<p style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">Sin dominios monitoreados.</p>';
+
+  const al = [...monAlerts].reverse().slice(0,20);
+  alerts.innerHTML = al.length ? al.map(a => `<div style="padding:4px 0;border-bottom:.5px solid var(--border)">
+    <span style="color:${a.type==='expired'?'var(--red)':a.type==='soon'?'var(--amber)':'var(--green)'}">${a.type==='expired'?'🔴':a.type==='soon'?'🟡':'🟢'} ${a.domain}</span>
+    <span style="color:var(--muted);margin-left:.5rem">${a.msg}</span>
+    <span style="color:var(--muted);float:right;font-size:.6rem">${new Date(a.date).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})}</span>
+  </div>`).join('') : 'Sin alertas aún.';
+}
+
+// ══════════════════════════════════════════════
+// HISTORIAL
+// ══════════════════════════════════════════════
+function renderHistory() {
+  const el = document.getElementById('histList');
+  const count = document.getElementById('histCount');
+  count.textContent = `${seenDomains.length} dominios en historial`;
+  if (!seenDomains.length) { el.innerHTML = '<p style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">El historial está vacío.</p>'; return; }
+  el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:.4rem">${seenDomains.map(d => `
+    <div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 8px">
+      <span style="font-family:var(--mono);font-size:.7rem;color:var(--accent2)">${d}</span>
+      <button onclick="restoreDomain('${d}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0" title="Restaurar">↩</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+function restoreDomain(d) { seenDomains = seenDomains.filter(x=>x!==d); localStorage.setItem('dh_seen', JSON.stringify(seenDomains)); renderHistory(); }
+function clearHistory() { if (!confirm('¿Borrar todo el historial?')) return; seenDomains = []; localStorage.setItem('dh_seen', '[]'); renderHistory(); }
+
+// ══════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════
+function exportCSV() {
+  if (!results.length) return;
+  const h = ['Negocio','Categoría','Teléfono','Rating','Reseñas','Dominio','Score','Estado','Vencimiento','Días','Registrador','Oportunidad'];
+  const rows = results.map(r => [r.name,r.category||'',r.phone||'',r.rating||'',r.reviewCount||0,r.domain||r.guessedDomain||'',r.score||'',r.status,r.expiry||'',r.daysLeft??'',r.registrar||'',r.isOpportunity?'Sí':'']);
+  const csv = [h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = `domainHunter_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+function exportPDF() {
+  const opp = results.filter(r=>r.isOpportunity||r.domainFree===true||r.status==='expired'||r.status==='soon');
+  if (!opp.length) { alert('No hay oportunidades para exportar'); return; }
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>DomainHunter Report</title><style>body{font-family:sans-serif;padding:2rem;color:#111}h1{color:#7c3aed}table{width:100%;border-collapse:collapse;margin-top:1rem}th{background:#f3f4f6;padding:.5rem;text-align:left;font-size:.8rem}td{padding:.5rem;border-bottom:1px solid #e5e7eb;font-size:.8rem}.opp{color:#059669;font-weight:700}.exp{color:#dc2626;font-weight:700}.soon{color:#d97706;font-weight:700}</style></head><body>
+    <h1>🔍 DomainHunter — Reporte de Oportunidades</h1>
+    <p style="color:#666;font-size:.85rem">Generado: ${new Date().toLocaleString('es-MX')} · ${opp.length} oportunidades encontradas</p>
+    <table><tr><th>Negocio</th><th>Rating</th><th>Dominio</th><th>Score</th><th>Estado</th><th>Vencimiento</th></tr>
+    ${opp.map(r=>`<tr><td><strong>${r.name}</strong><br><small>${r.category||''}</small></td><td>${r.rating?'⭐'+r.rating+' ('+r.reviewCount+')':'—'}</td><td style="color:#4f46e5">${r.domain||r.guessedDomain||'—'}</td><td><strong>${r.score||'—'}/10</strong></td><td class="${r.status==='expired'?'exp':r.status==='soon'?'soon':'opp'}">${r.status==='expired'?'VENCIDO':r.status==='soon'?'Por vencer '+r.daysLeft+'d':r.domainFree===true?'🟢 LIBRE':'—'}</td><td>${r.expiry||'—'}</td></tr>`).join('')}
+    </table></body></html>`);
+  w.document.close(); w.print();
+}
+</script>
+</body>
+</html>
